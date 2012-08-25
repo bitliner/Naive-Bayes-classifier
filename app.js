@@ -54,6 +54,17 @@ var	db=require('./database.js')
 var negations=/^not$|^didn't$|^doesn't$|^don't$/g
 ,	punctuation=/^.$|^:$|^,$|^;$|^?$|^!$/g
 
+Review.find({polarity:'pos'}).limit(900).exec(function(err,posRevs){
+	TrainingDoc.remove({},function(){
+		posRevs.forEach(function(posRev){
+			var t=new TrainingDoc(posRev).save(function(err,tdoc){
+				console.log('in save',err);
+			})
+		})
+		
+	})
+})
+
 Review.find({},function(err,reviews){// dovrei limitare la query in modo da avere solo doc del training set, cioè 2/3
 	console.log(err);
 	reviews.forEach(function(review){

@@ -1,7 +1,7 @@
 var fs=require('fs')
 ,	async=require('async')
 ,	db=require('./database.js')
-,	Review=db.Review()
+,	Review=db.get('Review')
 ,	pathPos='/home/bitliner/bitliner.dataset/review_polarity/txt_sentoken/pos/'
 ,	pathNeg='/home/bitliner/bitliner.dataset/review_polarity/txt_sentoken/neg/'
 
