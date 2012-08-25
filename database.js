@@ -8,18 +8,24 @@ if (!this.db){
 	this.db=db = mongoose.connect('mongodb://localhost/my-sentiment-analysis')
 }
 
-var ReviewSchema=new Schema({
-	text: String,
-	polarity: String
-})
-
-
-mongoose.model('Review', ReviewSchema)
-
-
-exports.Review = function(db) {
-	return this.db.model('Review')
-}
 exports.OID=function(id){
 	return new ObjectIdType.fromString(id)
 }
+
+module.exports.define=function(name,schema){
+	var s=new Schema(schema)
+	mongoose.model(name,s)
+}
+
+module.exports.get=function(name){
+	return this.db.model(name)
+}
+
+this.define('Review',{
+	text: String,
+	polarity: String
+})
+this.define('TrainingDoc',{
+	text: String,
+	polarity: String
+})
