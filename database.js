@@ -33,6 +33,10 @@ this.define('TrainingProcessedDoc',{
 	text: [String],
 	polarity: String
 })
+this.define('ProcessedDoc',{
+	text: [String],
+	polarity: String
+})
 
 var Review=this.get('Review')
 ,	TrainingDoc=this.get('TrainingDoc')

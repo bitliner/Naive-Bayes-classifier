@@ -153,8 +153,8 @@ createTrainingSet(900,0,function(){
 	TrainingDoc.find({},function(err,tdocs){
 		processDoc(tdocs)
 		getPriors(function(posPrior,negPrior){
-			// console.log('in getPriors',(new Date()).getTime() - startTime);
-			// console.log(posPrior,negPrior);
+			console.log('in getPriors',(new Date()).getTime() - startTime);
+			console.log(posPrior,negPrior);
 			removeDuplicates(tdocs)
 
 			
@@ -164,10 +164,10 @@ createTrainingSet(900,0,function(){
 				},function(cb){
 					cb(null, calculateTEXT(tdocs,'neg')  )
 				},function(cb){
-					//console.log('in create vocabulary',(new Date()).getTime() - startTime);
+					console.log('in create vocabulary',(new Date()).getTime() - startTime);
 					cb(null, extractVocabulary(tdocs) )			
 				}],function(err,arr){
-					//console.log(err,'end async.parallel',(new Date()).getTime() - startTime)
+					console.log(err,'end async.parallel',(new Date()).getTime() - startTime)
 
 					var TEXTpos=arr[0]
 					,	TEXTneg=arr[1]
