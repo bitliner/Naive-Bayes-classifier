@@ -5,9 +5,12 @@ var fs=require('fs')
 ,	pathPos='/home/bitliner/bitliner.dataset/review_polarity/txt_sentoken/pos/'
 ,	pathNeg='/home/bitliner/bitliner.dataset/review_polarity/txt_sentoken/neg/'
 
+var exit=function(){
+	console.log('END!');
+	process.kill(process.pid, 'SIGTERM')
+}
 
-
-var doImport=function(path,polarity){
+var doImport=function(path,polarity,cb){
 	fs.readdir(path,function(err,files){
 		if (err) console.log(err);
 		else{
@@ -28,16 +31,16 @@ var doImport=function(path,polarity){
 						})
 					}
 				})
-			},function(err){
-				if (err) throw err
-				else
-					console.log('END!');
-					process.kill(process.pid, 'SIGTERM');
-			})
+			},cb)
 		}
 	})
 }
-doImport(pathNeg,'neg')
+Review.remove(function(){	
+	doImport(pathNeg,'neg',function(){
+		doImport(pathNeg,'pos',exit)
+	})
+})
+
 //doImport(pathNeg,'neg')
 /*fs.readdir(pathPos,function(err,files){
 	if (err) console.log(err);

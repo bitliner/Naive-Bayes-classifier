@@ -106,5 +106,5 @@ Review.find({},function(err,reviews){// dovrei limitare la query in modo da aver
 	/* rimozione dei duplicati all'interno di ogni documento */
 	/* viene creato un singolo documento TEXTj che corrisponde alla concatenazione di tutti i documenti della classe j */
 	/* per ogni w si calcola il numero di occorrenze in TEXTj */
-	/* viene calcolata la probabilità: Nk+alfa / n+alfa|V| */
+	/* viene calcolata la probabilità Wk/Ck : Nk+alfa / n+alfa|V| */
 })

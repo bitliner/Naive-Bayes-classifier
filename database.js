@@ -29,9 +29,14 @@ this.define('TrainingDoc',{
 	text: String,
 	polarity: String
 })
+this.define('TrainingProcessedDoc',{
+	text: [String],
+	polarity: String
+})
 
 var Review=this.get('Review')
 ,	TrainingDoc=this.get('TrainingDoc')
+,	TrainingProcessedDoc=this.get('TrainingProcessedDoc')
 
 var createTrainigSet=function(limit,skip,cb){
 	Review.find({polarity:'pos'}).limit(limit).skip(skip).exec(function(err,posRevs){
