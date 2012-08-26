@@ -108,6 +108,42 @@ var calculateTEXT=function(tdocs,polarity){
 	return _und.flatten(TEXT)
 }
 
+var calculateProbabilityOfWordGivenClass=function(vocabulary, TEXTpos, TEXTneg){
+	var nPOS=TEXTpos.length 
+	,	nNEG=TEXTneg.length
+	vocabulary.forEach(function(w){
+		async.parallel([function(cb){
+			console.log('calculating occurences in TEXTpos');
+			cb(null,calculateOccurences(w,TEXTpos) )
+		},function(cb){
+			console.log('calculating occurences in TEXTneg');
+			cb(null,calculateOccurences(w,TEXTneg) )
+		}],function(err,arr){
+			console.log('calculate probability');
+			/* viene calcolata la probabilità Wk/Ck : Nk+alfa / n+alfa|V| */
+			var alfa=1
+			,	p_W_POS=(arr[0]+alfa)/(nPOS+ (alfa*vocabulary.length) )
+			,	p_W_NEG=(arr[1]+alfa)/(nNEG+ (alfa*vocabulary.length) )
+			console.log(w,p_W_POS,p_W_NEG);
+			return {
+				p_W_POS:p_W_POS,
+				p_W_NEG:p_W_NEG,
+			}
+		})
+	})
+}
+
+var extractVocabulary=function(tdocs){
+	return tdocs.reduce(function(memo,doc){
+		doc.text.forEach(function(token){
+			if (memo.indexOf(token)==-1 ){
+				memo.push(token)
+			}
+		})
+		return memo
+	},[])
+}
+
 createTrainingSet(900,0,function(){
 	TrainingDoc.find({},function(err,tdocs){
 		processDoc(tdocs)
@@ -117,35 +153,12 @@ createTrainingSet(900,0,function(){
 			
 			async.parallel([
 				function(cb){
-					// calculateTEXT(tdocs,'pos')
-					var TEXTpos=tdocs.filter(function(tdoc){
-						return tdoc.polarity=='pos'
-					}).reduce(function(memo,doc){
-						console.log('in reduce TEXTpos');
-						memo.splice(-1,0,doc.text)
-						return memo
-					},[])
-					cb(null,_und.flatten(TEXTpos))
+					cb(null,calculateTEXT(tdocs,'pos') )
 				},function(cb){
-					var TEXTneg=tdocs.filter(function(tdoc){
-						return tdoc.polarity=='neg'
-					}).reduce(function(memo,doc){
-						console.log('in reduce TEXTneg');
-						memo.splice(-1,0,doc.text)
-						return memo
-					},[])
-					cb(null, _und.flatten(TEXTneg) )
+					cb(null, calculateTEXT(tdocs,'neg')  )
 				},function(cb){
 					console.log('in create vocabulary');
-					var vocabulary=tdocs.reduce(function(memo,doc){
-						doc.text.forEach(function(token){
-							if (memo.indexOf(token)==-1 ){
-								memo.push(token)
-							}
-						})
-						return memo
-					},[])
-					cb(null,vocabulary)			
+					cb(null, extractVocabulary(tdocs) )			
 				}],function(err,arr){
 
 					console.log(err,'end async.parallel')
@@ -153,25 +166,27 @@ createTrainingSet(900,0,function(){
 					var TEXTpos=arr[0]
 					,	TEXTneg=arr[1]
 					,	vocabulary=arr[2]
-					,	nPOS=TEXTpos.length 
-					,	nNEG=TEXTneg.length
 
-					vocabulary.forEach(function(w){
+					var p=calculateProbabilityOfWordGivenClass(vocabulary, TEXTpos, TEXTneg)
+					console.log(p.p_W_POS, p.p_W_NEG);
+					
+
+					/*vocabulary.forEach(function(w){
 						async.parallel([function(cb){
 							cb(null,calculateOccurences(w,TEXTpos) )
 						},function(cb){
 							cb(null,calculateOccurences(w,TEXTneg) )
 						}],function(err,arr){
-							/* viene calcolata la probabilità Wk/Ck : Nk+alfa / n+alfa|V| */
+							 viene calcolata la probabilità Wk/Ck : Nk+alfa / n+alfa|V| 
 							var alfa=1
 							,	p_W_POS=(arr[0]+alfa)/(nPOS+ (alfa*vocabulary.length) )
 							,	p_W_NEG=(arr[1]+alfa)/(nNEG+ (alfa*vocabulary.length) )
 							console.log(w,p_W_POS,p_W_NEG);
 						})
-					})
-				})
+					})*/
+		})
 
-exit()
-})
+			exit()
+		})
 })
 })
