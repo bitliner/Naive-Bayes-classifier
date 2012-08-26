@@ -68,7 +68,7 @@ var getPriors=function(cb){
 	TrainingDoc.find({polarity:'pos'}).count().exec(function(err,posNum){
 		TrainingDoc.find({polarity:'neg'}).count().exec(function(err,negNum){
 			TrainingDoc.find({}).count().exec(function(err,docsNum){
-				console.log('docsNum,posNum,negNum: ',docsNum,posNum,negNum);
+				//console.log('docsNum,posNum,negNum: ',docsNum,posNum,negNum);
 				cb(posNum/docsNum,negNum/docsNum)
 			})
 		})
@@ -76,7 +76,7 @@ var getPriors=function(cb){
 }
 
 var removeDuplicates=function(tdocs){
-	console.log('in remove duplicates');
+	//console.log('in remove duplicates');
 	tdocs.forEach(function(tdoc,i){
 		var tmp=[]
 		tdoc.text.forEach(function(token,i){
@@ -98,10 +98,10 @@ var calculateOccurences=function(w,corpus){
 	},0)
 }
 var calculateTEXT=function(tdocs,polarity){
+	//console.log('creating TEXT',polarity);
 	var TEXT=tdocs.filter(function(tdoc){
 		return tdoc.polarity==polarity
 	}).reduce(function(memo,doc){
-		console.log('creating TEXT',polarity);
 		memo.splice(-1,0,doc.text)
 		return memo
 	},[])
@@ -113,18 +113,22 @@ var calculateProbabilityOfWordGivenClass=function(vocabulary, TEXTpos, TEXTneg){
 	,	nNEG=TEXTneg.length
 	vocabulary.forEach(function(w){
 		async.parallel([function(cb){
-			console.log('calculating occurences in TEXTpos');
-			cb(null,calculateOccurences(w,TEXTpos) )
+			// console.log('calculating occurences in TEXTpos');
+			//calculateOccurences(w,TEXTpos)
+			var occs=calculateOccurences(w,TEXTpos)
+			cb(null, occs)
 		},function(cb){
-			console.log('calculating occurences in TEXTneg');
-			cb(null,calculateOccurences(w,TEXTneg) )
+			// console.log('calculating occurences in TEXTneg');
+			//calculateOccurences(w,TEXTneg)
+			var occs=calculateOccurences(w,TEXTneg) 
+			cb(null, occs)
 		}],function(err,arr){
-			console.log('calculate probability');
+			// console.log('calculate probability');
 			/* viene calcolata la probabilità Wk/Ck : Nk+alfa / n+alfa|V| */
 			var alfa=1
 			,	p_W_POS=(arr[0]+alfa)/(nPOS+ (alfa*vocabulary.length) )
 			,	p_W_NEG=(arr[1]+alfa)/(nNEG+ (alfa*vocabulary.length) )
-			console.log(w,p_W_POS,p_W_NEG);
+			// console.log(w,p_W_POS,p_W_NEG);
 			return {
 				p_W_POS:p_W_POS,
 				p_W_NEG:p_W_NEG,
@@ -134,7 +138,7 @@ var calculateProbabilityOfWordGivenClass=function(vocabulary, TEXTpos, TEXTneg){
 }
 
 var extractVocabulary=function(tdocs){
-	return tdocs.reduce(function(memo,doc){
+	var v = tdocs.reduce(function(memo,doc){
 		doc.text.forEach(function(token){
 			if (memo.indexOf(token)==-1 ){
 				memo.push(token)
@@ -142,14 +146,17 @@ var extractVocabulary=function(tdocs){
 		})
 		return memo
 	},[])
+	return v
 }
 
 createTrainingSet(900,0,function(){
 	TrainingDoc.find({},function(err,tdocs){
 		processDoc(tdocs)
 		getPriors(function(posPrior,negPrior){
-			console.log(posPrior,negPrior);
+			// console.log('in getPriors',(new Date()).getTime() - startTime);
+			// console.log(posPrior,negPrior);
 			removeDuplicates(tdocs)
+
 			
 			async.parallel([
 				function(cb){
@@ -157,18 +164,17 @@ createTrainingSet(900,0,function(){
 				},function(cb){
 					cb(null, calculateTEXT(tdocs,'neg')  )
 				},function(cb){
-					console.log('in create vocabulary');
+					//console.log('in create vocabulary',(new Date()).getTime() - startTime);
 					cb(null, extractVocabulary(tdocs) )			
 				}],function(err,arr){
-
-					console.log(err,'end async.parallel')
+					//console.log(err,'end async.parallel',(new Date()).getTime() - startTime)
 
 					var TEXTpos=arr[0]
 					,	TEXTneg=arr[1]
 					,	vocabulary=arr[2]
 
 					var p=calculateProbabilityOfWordGivenClass(vocabulary, TEXTpos, TEXTneg)
-					console.log(p.p_W_POS, p.p_W_NEG);
+					//console.log(p.p_W_POS, p.p_W_NEG);
 					
 
 					/*vocabulary.forEach(function(w){
