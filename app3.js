@@ -9,6 +9,7 @@ var	db=require('./database.js')
 ,	_und = require("underscore")
 ,	importer=require('./importer')
 ,	TextManipulator=require('./TextManipulator')
+,	NaiveBayesClassifier=require('./NaiveBayesClassifier')
 
 
 
@@ -31,49 +32,8 @@ var processDocs=function(trainingDocs){
 	return processedDocs
 }
 
-var calculateProbabilityOfWordGivenClass=function(vocabulary, TEXTpos, TEXTneg){
-	var nPOS=TEXTpos.length 
-	,	nNEG=TEXTneg.length
-	vocabulary.forEach(function(w){
-		async.parallel([function(cb){
-			cb(null, TextManipulator.calculateOccurences(w,TEXTpos))
-		},function(cb){
-			// console.log('calculating occurences in TEXTneg');
-			cb(null, TextManipulator.calculateOccurences(w,TEXTneg))
-		}],function(err,arr){
-			// console.log('calculate probability');
-			/* viene calcolata la probabilità Wk/Ck : Nk+alfa / n+alfa|V| */
-			var alfa=1
-			,	p_W_POS=(arr[0]+alfa)/(nPOS+ (alfa*vocabulary.length) )
-			,	p_W_NEG=(arr[1]+alfa)/(nNEG+ (alfa*vocabulary.length) )
-			console.log(w,p_W_POS,p_W_NEG);
-		})
-	})
-}
 
-var extractVocabulary=function(tdocs){
-	var v = tdocs.reduce(function(memo,doc){
-		doc.text.forEach(function(token){
-			if (memo.indexOf(token)==-1 ){
-				memo.push(token)
-			}
-		})
-		return memo
-	},[])
-	return v
-}
 
-// calculate corpus text of class (docs, filter, corpus-text attributes)
-var calculateTEXT=function(tdocs,polarity){
-	//console.log('creating TEXT',polarity);
-	var TEXT=tdocs.filter(function(tdoc){
-		return tdoc.polarity==polarity
-	}).reduce(function(memo,doc){
-		memo.splice(-1,0,doc.text)
-		return memo
-	},[])
-	return _und.flatten(TEXT)
-}
 
 
 
@@ -117,12 +77,12 @@ async.parallel([function(cb){
 
 	async.parallel([
 		function(cb){
-			cb(null,calculateTEXT(processedDocs,'pos') )
+			cb(null,NaiveBayesClassifier.calculateCorpusOfClass(processedDocs,'pos') )
 		},function(cb){
-			cb(null, calculateTEXT(processedDocs,'neg')  )
+			cb(null, NaiveBayesClassifier.calculateCorpusOfClass(processedDocs,'neg')  )
 		},function(cb){
 			console.log('in create vocabulary',(new Date()).getTime() - startTime);
-			cb(null, extractVocabulary(processedDocs) )			
+			cb(null, NaiveBayesClassifier.extractVocabulary(processedDocs) )			
 		}],function(err,arr){
 			console.log(err,'END calculate of TEXTj and vocabulary',(new Date()).getTime() - startTime)
 
@@ -130,8 +90,13 @@ async.parallel([function(cb){
 			,	TEXTneg=arr[1]
 			,	vocabulary=arr[2]
 
-			var p=calculateProbabilityOfWordGivenClass(vocabulary, TEXTpos, TEXTneg)
+			var p=NaiveBayesClassifier.calculateProbabilityOfWordGivenClass(vocabulary, TEXTpos, TEXTneg)
 		})
 	exit()
 
 })
+
+
+/* TODO: insert method learning and classify for NaiveBayesClassifier */
+/* TODO: change name of NaiveBayesClassifier in BinarizedMultinomialNaiveBayesClassifier  */
+/* TODO: put remove duplicates processing in processDocs method */

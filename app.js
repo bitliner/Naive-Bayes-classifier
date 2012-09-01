@@ -107,4 +107,5 @@ Review.find({},function(err,reviews){// dovrei limitare la query in modo da aver
 	/* viene creato un singolo documento TEXTj che corrisponde alla concatenazione di tutti i documenti della classe j */
 	/* per ogni w si calcola il numero di occorrenze in TEXTj */
 	/* viene calcolata la probabilità Wk/Ck : Nk+alfa / n+alfa|V| */
+	/* n è il numero di parole totali in una classe, Kn numero di quella parola in quella classe */
 })

@@ -37,28 +37,10 @@ this.define('ProcessedDoc',{
 	text: [String],
 	polarity: String
 })
+this.define('ProbabilityOfWordGivenClass',{
+	word: String,
+	probabilityGivenPositiveClass: Number,
+	probabilityGivenNegativeClass: Number,
+})
 
-var Review=this.get('Review')
-,	TrainingDoc=this.get('TrainingDoc')
-,	TrainingProcessedDoc=this.get('TrainingProcessedDoc')
-
-var createTrainigSet=function(limit,skip,cb){
-	Review.find({polarity:'pos'}).limit(limit).skip(skip).exec(function(err,posRevs){
-		TrainingDoc.remove({},function(){
-			posRevs.forEach(function(posRev){
-				var t=new TrainingDoc(posRev).save(function(err,tdoc){
-					console.log('in save pos',err);
-				})
-			})
-			Review.find({polarity:'neg'}).limit(limit).skip(skip).exec(function(err,negRevs){
-				negRevs.forEach(function(negRev){
-					var t=new TrainingDoc(negRev).save(function(err,tdoc){
-						console.log('in save neg',err);
-					})
-				})
-				cb()
-			})
-		})
-	})	
-}
 
